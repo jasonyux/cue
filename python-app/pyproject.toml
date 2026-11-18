@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cue-python"
+version = "0.1.0"
+description = "Native Python computer-use sample runner"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
+  "pydantic>=2.10,<3",
+  "openai>=2,<3",
+  "anthropic[bedrock]>=2.1,<3",  # the live roles' Claude on Bedrock Mantle, which serves Claude through the Messages API only
+  "playwright==1.58.0",
+  "PyAutoGUI==0.9.54",
+  "Pillow==11.3.0",
+  "python-dotenv>=1,<2",
+  "ruamel-yaml>=0.18,<1",  # settings.yaml, read and written with its comments kept
+  # Accessibility control mode (CUA_DESKTOP_MODE=accessibility) on macOS.
+  "pyobjc-framework-ApplicationServices>=10; sys_platform == 'darwin'",
+  "pyobjc-framework-ScreenCaptureKit>=10; sys_platform == 'darwin'",
+  "aws-bedrock-token-generator>=1.1.0",
+  "websockets>=14,<16",  # the live actor's remote desktop: the bridge in the container and the client on the Mac
+  "tiktoken>=0.14.0",
+  "jsonlines>=4.0.0",
+  "numpy>=2.2.6",
+  "claude-agent-sdk>=0.2.165",
+  "openai-codex>=0.162.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = ["pytest>=8,<9", "pytest-asyncio>=0.25,<1", "httpx>=0.28,<1", "ruff>=0.11", "mypy>=1.15"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["live: opt-in real Responses API and desktop input"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.mypy]
+python_version = "3.12"  # the interpreter the repo pins (.python-version); numpy's stubs need it
+check_untyped_defs = true
+ignore_missing_imports = true

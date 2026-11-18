@@ -1,0 +1,34 @@
+{
+  "scenarios": [
+    {
+      "id": "desktop-login-items",
+      "labId": "desktop",
+      "category": "productivity",
+      "title": "Login Items Audit",
+      "description": "Operate a local macOS app instead of a lab page. The agent reads System Settings through the Accessibility API while you keep using your Mac: no browser, and the pointer never moves.",
+      "defaultPrompt": "Open System Settings and tell me which apps are set to open at login (General > Login Items & Extensions). Do not change any settings.",
+      "tags": ["desktop", "macos", "accessibility", "read-only"],
+      "templateDirectory": "workspace-template",
+      "instructions": [
+        "The task targets local macOS apps, not a lab page. Start with System Settings unless the prompt names another app.",
+        "Read only what the prompt asks for. If the prompt says not to change settings, never toggle, type into, or dismiss anything except search fields and navigation.",
+        "Finish with a short plain-language summary of what you found."
+      ]
+    },
+    {
+      "id": "desktop-free-task",
+      "labId": "desktop",
+      "category": "productivity",
+      "title": "Desktop Task",
+      "description": "Give the agent any task on this Mac. It picks the app, opens it in the background, and works through the Accessibility API without taking over your mouse or keyboard.",
+      "defaultPrompt": "Open the Calculator app and compute 1234 * 56. Report the result.",
+      "tags": ["desktop", "macos", "accessibility"],
+      "templateDirectory": "workspace-template",
+      "instructions": [
+        "The task targets local macOS apps, not a lab page. Choose the app that fits the prompt and launch it if needed.",
+        "Stay within the apps the task requires and avoid destructive actions: do not delete, send, purchase, or change system-wide settings unless the prompt explicitly asks.",
+        "Finish with a short plain-language summary of what you did and the result."
+      ]
+    }
+  ]
+}

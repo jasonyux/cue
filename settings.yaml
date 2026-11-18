@@ -1,0 +1,107 @@
+# Cue's settings file
+# sensitive values like API keys are read from .env, not stored here.
+
+summary:                       # notes: one worklog line about every minute of what you did
+  provider: openrouter         # vllm, openai, anthropic, openrouter or litellm: whose key set in .env, and how it is called (default vllm)
+  model: anthropic/claude-haiku-5.5 # recommend haiku5.5 or equivalent
+  base_url: null               # null uses the provider's default url address
+  stream: true                 # off for an endpoint that cannot stream
+  thinking: false              # reasons before answering, for models that support it
+  screenshots: true            # the newest window screenshots go with each call (default false)
+  max_tokens: 0                # output tokens per call; 0 = automatic
+  interval_s: 60               # seconds between notes (at least 10)
+
+belief:                        # tasks: keeps your task list
+  provider: openrouter         # default vllm
+  model: anthropic/claude-sonnet-5.5 # recommend sonnet5.5 or equivalent
+  base_url: null
+  stream: true
+  thinking: true
+  max_tokens: 0
+  interval_s: 180              # at least 15 (default 300)
+  stale_days: 7                # an active task untouched for this long is paused
+  context_summaries: 15        # earlier worklog lines shown before the new ones: the arc of the work
+  similar_threshold: 0.6       # an added entry this close to one on the list is held back once with its lookalikes; 0 = off
+  done_step_days: 21           # finished entries older than this are hidden behind "show all"
+  trash_days: 7                # deleted tasks and entries stay recoverable this long
+
+preference:                    # preferences: keeps data/memory/preferences.md from your reactions to suggestions and tasks
+  provider: openrouter         # default vllm
+  model: anthropic/claude-sonnet-5.5 # recommend sonnet5.5 or equivalent
+  base_url: null
+  stream: true
+  thinking: true
+  max_tokens: 0
+  interval_s: 300              # an update this often while a session runs, and one at its stop
+  min_feedback: 1              # reactions an update needs; fewer wait for the next
+  cap_tokens: 400              # the file may not exceed this many tokens
+  context_summaries: 15        # worklog lines shown to the updater
+  context_decisions: 10        # earlier decisions shown before the new reactions
+  search_rounds: 5             # history searches per update; 0 leaves the tool out
+
+proposer:                      # suggestions: proposes what to do next
+  provider: openrouter            # default vllm
+  model: anthropic/claude-sonnet-5.5 # recommend sonnet5.5 or equivalent
+  base_url: null               # default null
+  stream: true
+  thinking: true
+  screenshots: false
+  max_tokens: 0
+  interval_s: 300              # at least 15 (default 300)
+  max_proposals: 3             # ranked proposals per round, 1 to 5
+  search_rounds: 5             # the history search tool: searches a round at most; 0 leaves the tool out
+  notify: true                 # a macOS notification for the top one
+  inputs: [tasks, worklog, feedback, chat, preferences] # full input includes [tasks, worklog, snapshots, current_window, feedback, chat, preferences])
+  context_summaries: 6         # notes a round is given as context: the session's last N worklog lines
+  feedback_window:             # past decisions shown, from every session
+    rejected: 6                #   the last N rejected, those with a typed reason first
+    accepted: 3                #   the last N accepted
+    recent: 2                  #   and the top proposal of this session's last N rounds nobody answered
+  dedup: true                  # the repeat filter (strongly recommended to avoid repeated suggestions)
+  dedup_threshold: 0.65        # cosine similarity at or above which a proposal is a repeat
+  dedup_not_now_hours: 48      # a "not now" counts for this long
+  dedup_session_hours: 24      # this session's own proposals count for this long
+  idle_trigger: true           # one quick suggestion when you pause: no keyboard or mouse input after working (the Zen menu switches it too)
+  idle_s: 10                   # seconds of pause before it, 3 to 600
+  idle_cooldown_s: 60.0        # at least this long between two pause suggestions
+  idle_away_s: 120             # still no input this long after one: you are away
+  idle_context_s: 120          # how far back from the pause the raw observations it reads go
+  idle_proposals: 1            # proposals per pause, 1 to 5
+  idle_thinking: true          # reasons before answering; off is faster, but some models refuse it
+
+embed:                         # the embeddings model behind the repeat filter (Anthropic has none)
+  provider: openrouter         # default vllm
+  model: openai/text-embedding-3-small # recommend text-embedding-3-small
+  base_url: https://openrouter.ai/api/v1 # default null
+
+observer:
+  snapshot_interval_s: 10      # seconds between looks (at least 2)
+  screenshot_mode: switch      # switch (on app change), always (every distinct look), off
+  screenshot_max_side: 1024    # pixels on the long side of a screenshot sent to a model
+  max_elements: 400            # accessibility elements per look
+
+permissions:                   # block (not even looked at), look (content read, not used), or use (acted in, which includes looking)
+  default: ask                 # for apps no rule names: block, look, use, or ask (each new app is asked about once, on the Zen page) (default look)
+  apps: {}                     # app name or bundle id, globs allowed, e.g. {Slack: look, Code: use, 1Password*: block}; the strictest match wins
+  sites: {}                    # in any browser: a domain covers its subdomains, * is a glob, e.g. {chase.com: block, "*bank*": block}
+
+session:
+  max_session_minutes: 240     # a forgotten session stops after this; 0 for no limit
+  stream_lookback_days: 30     # how far back a stage reads for what stood at its window's end
+
+actor:                         # the agent chat turns, temporary runs and accepted suggestions go to
+  agents: [claude, codex]      # supported agents for solving the tasks
+  desktop_source:                 # local, remote, or both; remote needs remote_desktop below
+  - local
+  context_summaries: 20        # max notes a run is given as context
+  yield_s: 20                  # the desktop agent's exec_py yields a still-running cell after this long
+  claude_model: opus           # recommended opus or equivalent; as claude --model takes it; null: Claude Code's default
+  claude_permission_mode: auto # auto, acceptEdits, bypassPermissions, etc
+  claude_cwd: null             # the folder Claude Code starts in; null: the run's own workspace
+  codex_model: gpt-6.1-sol     # recommended gpt-6.1-sol or equivalent; as codex --model takes it; null: Codex's default
+  codex_sandbox: workspace-write # read-only, workspace-write or full-access
+  codex_cwd: null
+
+remote_desktop:                # used when desktop_source includes remote; its token is CUA_DESKTOP_REMOTE_TOKEN in .env
+  provider: cua                # Ubuntu container with our worker behind a WebSocket bridge (default null)
+  url: null                    # ws:// or wss:// where its bridge is reached (default null)

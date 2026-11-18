@@ -1,0 +1,41 @@
+name: Checks
+
+# On a pull request, or started by hand from the Actions tab: nothing runs on a plain push.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: macos-latest # the backend and its tests use macOS APIs
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: '0.12.15'
+      - name: Enable the pinned pnpm
+        run: corepack enable
+      - name: Install the workspace
+        run: pnpm install --frozen-lockfile
+      - name: Install the Python environment
+        run: pnpm python:install
+      - name: Check the console, the contracts and the launcher
+        run: pnpm check:js
+      - name: Check the backend
+        run: pnpm check:python
